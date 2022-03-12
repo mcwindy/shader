@@ -4,7 +4,7 @@ import time
 
 import pygame
 
-render_way = 2
+render_way = 1
 render_by_time = True
 line_generation_gap = 1
 ZERO = 1e-9
@@ -16,6 +16,7 @@ radius = 3
 line_width = 10
 point_color = (190, 190, 100)
 show_lines = True
+use_actual_mouse = False
 
 
 def Vector(x, y):
@@ -66,7 +67,7 @@ def fuck_line(origin_pos, angle):
 
 pygame.init()
 screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN)
-mouse_pos = (width / 2, height / 2)
+central_pos = (width / 2, height / 2)
 rendered_line_number = 0
 if __name__ == '__main__':
     pygame.display.set_caption("Ray")
@@ -82,10 +83,12 @@ if __name__ == '__main__':
                 if event.key == pygame.K_q:
                     pygame.quit()
                     exit()
-
-        # mouse_pos = pygame.mouse.get_pos()
-        mouse_pos = (mouse_pos[0] + random.random() * 200 - 15, mouse_pos[1] + random.random() * 150 - 15)
-        mouse_pos = (mouse_pos[0] % width, mouse_pos[1] % height)
+        if use_actual_mouse:
+            mouse_pos = pygame.mouse.get_pos()
+            central_pos = mouse_pos
+        else:
+            central_pos = (central_pos[0] + random.random() * 200 - 15, central_pos[1] + random.random() * 150 - 15)
+            central_pos = (central_pos[0] % width, central_pos[1] % height)
 
         surface2 = screen.convert_alpha()
         screen.fill((40, 35, 70))
@@ -93,14 +96,14 @@ if __name__ == '__main__':
 
         if render_way == 1:
             for i in range(0, 360, 3):
-                fuck_line(mouse_pos, i)
+                fuck_line(central_pos, i)
         elif render_way == 2:
             for i in range(100):
                 for j in range(100):
                     cur_pos = (width / 100 * i, height / 100 * j)
                     flag = True
                     for line in obstacles:
-                        if is_intersected(cur_pos, mouse_pos, *line):
+                        if is_intersected(cur_pos, central_pos, *line):
                             flag = False
                     if flag:
                         pygame.draw.circle(screen, (*point_color, random.randint(0, 50)), cur_pos, radius)
@@ -109,19 +112,17 @@ if __name__ == '__main__':
                 pos = (random.randint(0, width), random.randint(0, height))
                 flag = True
                 for line in obstacles:
-                    if is_intersected(pos, mouse_pos, *line):
+                    if is_intersected(pos, central_pos, *line):
                         flag = False
                 if flag:
                     pygame.draw.circle(surface2, (*point_color, random.randint(30, 70)), pos, radius)
 
         if render_by_time:
-            print(rendered_line_number * line_generation_gap)
             if rendered_line_number * line_generation_gap < time.time() - start_time:
                 rendered_line_number += 1
                 pos1 = (random.randint(0, width), random.randint(0, height))
                 pos2 = (random.randint(0, width), random.randint(0, height))
                 obstacles.append((pos1, pos2))
-                print("!")
         else:
             if random.random() < 0.01:
                 pos1 = (random.randint(0, width), random.randint(0, height))
